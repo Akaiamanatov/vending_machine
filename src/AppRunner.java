@@ -59,14 +59,14 @@ public class AppRunner {
 
         UniversalArray<Product> allowProducts = getAllowedProducts();
         chooseAction(allowProducts);
-
     }
 
     private UniversalArray<Product> getAllowedProducts() {
         UniversalArray<Product> allowProducts = new UniversalArrayImpl<>();
 
         for (int i = 0; i < products.size(); i++) {
-            if (coinAcceptor.getAmount() >= products.get(i).getPrice()) {
+            // ИСПРАВЛЕНО: было coinAcceptor, стало paymentAcceptor
+            if (paymentAcceptor.getAmount() >= products.get(i).getPrice()) {
                 allowProducts.add(products.get(i));
             }
         }
@@ -74,7 +74,6 @@ public class AppRunner {
     }
 
     private void chooseAction(UniversalArray<Product> products) {
-
         print("a - Пополнить баланс");
         showActions(products);
         print("h - Выйти");
@@ -101,9 +100,10 @@ public class AppRunner {
             if ("h".equalsIgnoreCase(action)) {
                 isExit = true;
             }
-
-
-    }
+        } catch (Exception e) {
+            print("Неверный ввод");
+        }
+    } // ИСПРАВЛЕНО: Добавлена закрывающая скобка метода
 
     private void showActions(UniversalArray<Product> products) {
         for (int i = 0; i < products.size(); i++) {
