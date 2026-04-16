@@ -1,5 +1,6 @@
 import enums.ActionLetter;
 import model.*;
+import util.PaymentAcceptor;
 import util.UniversalArray;
 import util.UniversalArrayImpl;
 
@@ -8,8 +9,7 @@ import java.util.Scanner;
 public class AppRunner {
 
     private final UniversalArray<Product> products = new UniversalArrayImpl<>();
-
-    private final CoinAcceptor coinAcceptor;
+    private final PaymentAcceptor paymentAcceptor;
 
     private static boolean isExit = false;
 
@@ -22,7 +22,8 @@ public class AppRunner {
                 new Mars(ActionLetter.F, 80),
                 new Pistachios(ActionLetter.G, 130)
         });
-        coinAcceptor = new CoinAcceptor(100);
+
+        paymentAcceptor = choosePayment();
     }
 
     public static void run() {
@@ -32,22 +33,39 @@ public class AppRunner {
         }
     }
 
+    private PaymentAcceptor choosePayment() {
+        print("Выберите способ оплаты");
+        print("1 - Монеты");
+        print("2 - Купюры");
+        print("3 - Карта");
+
+        String input = fromConsole();
+
+        switch (input) {
+            case "2":
+                return new BillAcceptor(0);
+            case "3":
+                return new CardAcceptor();
+            default:
+                return new CoinAcceptor(0);
+        }
+    }
+
     private void startSimulation() {
-        print("В автомате доступны:");
+        print("\nВ автомате доступны:");
         showProducts(products);
 
-        print("Монет на сумму: " + coinAcceptor.getAmount());
+        print("\nТекущий баланс: " + paymentAcceptor.getAmount());
 
-        UniversalArray<Product> allowProducts = new UniversalArrayImpl<>();
-        allowProducts.addAll(getAllowedProducts().toArray());
+        UniversalArray<Product> allowProducts = getAllowedProducts();
         chooseAction(allowProducts);
-
     }
 
     private UniversalArray<Product> getAllowedProducts() {
         UniversalArray<Product> allowProducts = new UniversalArrayImpl<>();
+
         for (int i = 0; i < products.size(); i++) {
-            if (coinAcceptor.getAmount() >= products.get(i).getPrice()) {
+            if (paymentAcceptor.getAmount() >= products.get(i).getPrice()) {
                 allowProducts.add(products.get(i));
             }
         }
@@ -55,31 +73,42 @@ public class AppRunner {
     }
 
     private void chooseAction(UniversalArray<Product> products) {
+
+        print("a - Пополнить баланс");
         showActions(products);
-        print(" h - Выйти");
+        print("h - Выйти");
+
         String action = fromConsole().substring(0, 1);
+
         try {
+            if ("a".equalsIgnoreCase(action)) {
+                paymentAcceptor.addAmount(0);
+                return;
+            }
+
             for (int i = 0; i < products.size(); i++) {
-                if (products.get(i).getActionLetter().equals(ActionLetter.valueOf(action.toUpperCase()))) {
-                    coinAcceptor.setAmount(coinAcceptor.getAmount() - products.get(i).getPrice());
-                    print("Вы купили " + products.get(i).getName());
-                    break;
-                } else if ("h".equalsIgnoreCase(action)) {
-                    isExit = true;
-                    break;
+                if (products.get(i).getActionLetter()
+                        .equals(ActionLetter.valueOf(action.toUpperCase()))) {
+
+                    if (paymentAcceptor.pay(products.get(i).getPrice())) {
+                        print("Вы купили " + products.get(i).getName());
+                    }
+                    return;
                 }
             }
-        } catch (IllegalArgumentException e) {
-            print("Недопустимая буква. Попрбуйте еще раз.");
-            chooseAction(products);
+
+            if ("h".equalsIgnoreCase(action)) {
+                isExit = true;
+            }
+
+        } catch (Exception e) {
+            print("Ошибка ввода");
         }
-
-
     }
 
     private void showActions(UniversalArray<Product> products) {
         for (int i = 0; i < products.size(); i++) {
-            print(String.format(" %s - %s", products.get(i).getActionLetter().getValue(), products.get(i).getName()));
+            print(products.get(i).getActionLetter().getValue() + " - " + products.get(i).getName());
         }
     }
 
@@ -97,3 +126,4 @@ public class AppRunner {
         System.out.println(msg);
     }
 }
+
