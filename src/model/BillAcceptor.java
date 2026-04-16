@@ -4,11 +4,11 @@ import util.PaymentAcceptor;
 
 import java.util.Scanner;
 
-public class CoinAcceptor implements PaymentAcceptor {
+public class BillAcceptor implements PaymentAcceptor {
 
     private int amount;
 
-    public CoinAcceptor(int amount) {
+    public BillAcceptor(int amount) {
         this.amount = amount;
     }
 
@@ -20,7 +20,7 @@ public class CoinAcceptor implements PaymentAcceptor {
     @Override
     public void addAmount(int amount) {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Внесите монеты: ");
+        System.out.print("Внесите купюры: ");
         int input = scanner.nextInt();
         this.amount += input;
     }
